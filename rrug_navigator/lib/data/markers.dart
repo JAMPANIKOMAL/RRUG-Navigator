@@ -293,7 +293,6 @@ List<Marker> buildFacilityMarkers(
     return hash <= 4; // show only ~50% when zoomed out
 
 
-    return true;
   }).toList();
 
   print('Zoom level: $zoomLevel, displaying ${filtered.length} markers');

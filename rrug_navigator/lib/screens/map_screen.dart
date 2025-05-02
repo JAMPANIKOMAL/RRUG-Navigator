@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures, deprecated_member_use
+// ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures, deprecated_member_use, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -25,7 +25,6 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   final MapController _mapController = MapController();
-
 
   // Future<LatLng?> _getNearestRoutablePoint(LatLng point) async {
   //   const String apiKey =
@@ -149,8 +148,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       }
     });
 
-
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _mapController.moveAndRotate(_rruCenter, _initialZoom, 0);
     });
@@ -228,7 +225,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
 
     controller.addListener(() {
-      _mapController.rotate(rotationTween.evaluate(animation));
+      final newRotation = rotationTween.evaluate(animation);
+      _mapController.moveAndRotate(
+        _mapController.camera.center,
+        _mapController.camera.zoom,
+        newRotation,
+      );
     });
 
     animation.addStatusListener((status) {
@@ -371,7 +373,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               hintText: 'Search facilities...',
               hintStyle: TextStyle(color: Theme.of(context).hintColor),
               prefixIcon: const Icon(Icons.search, color: Colors.grey),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 0,
+                horizontal: 16,
+              ),
               filled: true,
               fillColor: Theme.of(context).cardColor.withOpacity(0.9),
               border: OutlineInputBorder(
@@ -384,14 +389,15 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               setState(() {
                 _searchQuery = query.toLowerCase();
                 final match = facilities.firstWhere(
-                      (f) => f.name.toLowerCase().contains(_searchQuery),
-                  orElse: () => Facility(
-                    name: '',
-                    description: '',
-                    location: _rruCenter,
-                    icon: Icons.help,
-                    color: Colors.transparent,
-                  ),
+                  (f) => f.name.toLowerCase().contains(_searchQuery),
+                  orElse:
+                      () => Facility(
+                        name: '',
+                        description: '',
+                        location: _rruCenter,
+                        icon: Icons.help,
+                        color: Colors.transparent,
+                      ),
                 );
                 if (match.name.isNotEmpty) {
                   _animatedMapMove(match.location, 19);
@@ -400,7 +406,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             },
           ),
         ),
-//title: const Text('RRUG Facility Locator'),
+        //title: const Text('RRUG Facility Locator'),
         actions: [
           IconButton(
             onPressed: ThemeManager.toggleTheme,
@@ -429,9 +435,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               cameraConstraint: CameraConstraint.contain(bounds: bounds),
               interactionOptions: const InteractionOptions(
                 flags:
-                    InteractiveFlag.pinchZoom |
-                    InteractiveFlag.drag |
-                    InteractiveFlag.doubleTapZoom,
+                    InteractiveFlag
+                        .all, // Enables all gestures including rotation
               ),
             ),
 
@@ -448,13 +453,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 markers: [
                   if (_currentLocationMarker != null) _currentLocationMarker!,
                   ...buildFacilityMarkers(
-                        (facility) => setState(() => _selectedFacility = facility),
+                    (facility) => setState(() => _selectedFacility = facility),
                     _categoryFilter,
                     _currentZoomLevel, // 👈 zoom passed here
                   ),
                 ],
               ),
-
 
               PolylineLayer(
                 polylines: [
